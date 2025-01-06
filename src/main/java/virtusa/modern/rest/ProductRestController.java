@@ -81,12 +81,12 @@ public class ProductRestController {
 
     @GetMapping("/products")
     @Operation(summary = "Get all products", description = "Retrieve a list of all products available in the database.")
-    public ResponseEntity<List<Product>> getAllProducts() {
+    public ResponseEntity<List<ProductResponseDTO>> getAllProducts() {
         logger.info("Received request to fetch all products");
         try {
-            List<Product> products = productService.getAllProducts();
-            logger.info("Successfully retrieved {} products", products.size());
-            return ResponseEntity.ok(products);
+            List<ProductResponseDTO> productsResponse = productService.getAllProducts();
+            logger.info("Successfully retrieved {} products", productsResponse.size());
+            return ResponseEntity.ok(productsResponse);
         } catch (Exception e) {
             logger.error("Error occurred while fetching all products", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

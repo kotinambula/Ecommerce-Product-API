@@ -28,15 +28,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public void createProduct(CreateProductDTO productDTO) {
+    public Product createProduct(CreateProductDTO productDTO) {
         logger.info("Initiating product creation with details: {}", productDTO);
 
         try {
-            productRepository.createProduct(productDTO);
+            Product product = productRepository.createProduct(productDTO);
             logger.info("Product successfully created with details: {}", productDTO);
+            return product;
         } catch (Exception e) {
             logger.error("Error occurred while creating product with details: {}", productDTO, e);
         }
+        return null;
     }
 
     @Override
@@ -79,13 +81,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<Product> getAllProducts() {
+    public List<ProductResponseDTO> getAllProducts() {
         logger.info("Fetching all products from the database");
 
         try {
-            List<Product> products = productRepository.getAllProducts();
-            logger.info("Successfully retrieved {} products", products.size());
-            return products;
+            List<ProductResponseDTO> productsResponse = productRepository.getAllProducts();
+            logger.info("Successfully retrieved {} products", productsResponse.size());
+            return productsResponse;
         } catch (Exception e) {
             logger.error("Error occurred while fetching all products", e);
             return null;

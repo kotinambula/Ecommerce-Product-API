@@ -18,8 +18,9 @@ public class ProductCategoryRepositoryImpl implements ProductCategoryRepository 
 	
 	
 	@Override
-	public void createProductCategory(ProductCategory productCategory) {
+	public ProductCategory createProductCategory(ProductCategory productCategory) {
 		entityManager.persist(productCategory);
+		return productCategory;
 	}
 
 	@Override

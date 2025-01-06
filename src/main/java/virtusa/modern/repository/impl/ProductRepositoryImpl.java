@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Repository;
 
 import jakarta.persistence.EntityManager;
@@ -38,7 +39,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 	}
 
 	@Override
-	public void createProduct(CreateProductDTO productDTO) {
+	public Product createProduct(CreateProductDTO productDTO) {
 		logger.info("Saving product with details: {}", productDTO);
 
 		try {
@@ -58,10 +59,13 @@ public class ProductRepositoryImpl implements ProductRepository {
 			product.setTags(listOfTags);
 
 			entityManager.persist(product);
+			
 			logger.info("Product successfully saved with ID: {}", product.getProductId());
+			return product;
 		} catch (Exception e) {
 			logger.error("Error occurred while saving product with details: {}", productDTO, e);
 		}
+		return null;
 	}
 
 	private List<Tag> getTagsByIds(List<Integer> tagIds) {
@@ -93,6 +97,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 				productEntity.setProductQuantity(product.getProductQuantity());
 				productEntity.setTags(product.getTags());
 				logger.info("Product with ID: {} successfully updated", productId);
+				 entityManager.persist(productEntity);
 				return productEntity;
 			} else {
 				logger.warn("Product with ID: {} not found for update", productId);
@@ -189,22 +194,40 @@ public class ProductRepositoryImpl implements ProductRepository {
 			return null;
 		}
 	}
-
+	
 	@Override
-	public List<Product> getAllProducts() {
-		logger.info("Fetching all products from database");
+	public List<ProductResponseDTO> getAllProducts() {
+	    logger.info("Fetching all products from database");
 
-		try {
-			String jpql = "SELECT p FROM Product p";
-			TypedQuery<Product> query = entityManager.createQuery(jpql, Product.class);
-			List<Product> products = query.getResultList();
-			logger.info("Successfully fetched {} products", products.size());
-			return products;
-		} catch (Exception e) {
-			logger.error("Error occurred while fetching all products", e);
-			return new ArrayList<>();
-		}
+	    try {
+	        String jpql = "SELECT p FROM Product p";
+	        TypedQuery<Product> query = entityManager.createQuery(jpql, Product.class);
+	        List<Product> products = query.getResultList();
+
+	        // Convert Product entities to ProductResponseDTO using streams
+	        List<ProductResponseDTO> productResponseDTOs = products.stream().map(product -> {
+	            ProductResponseDTO responseDto = new ProductResponseDTO();
+	            responseDto.setProductId(product.getProductId());
+	            responseDto.setProductName(product.getProductName());
+	            responseDto.setProductPrice(product.getProductPrice());
+	            responseDto.setProductDescription(product.getProductDescription());
+	            responseDto.setProductQuantity(product.getProductQuantity());
+	            responseDto.setProductImageUrl(product.getProductImageUrl());
+	            responseDto.setDateCreated(product.getDateCreated());
+	            responseDto.setLastUpdated(product.getLastUpdated());
+	            responseDto.setCategoryName(product.getCategory().getCategoryName());
+	            responseDto.setTagNames(product.getTags().stream().map(tag -> tag.getTagName()).collect(Collectors.toList()));
+	            return responseDto;
+	        }).collect(Collectors.toList());
+
+	        logger.info("Successfully fetched {} products", productResponseDTOs.size());
+	        return productResponseDTOs;
+	    } catch (Exception e) {
+	        logger.error("Error occurred while fetching all products", e);
+	        return new ArrayList<>();
+	    }
 	}
+
 
 	@Override
 	public void deleteProduct(Integer productId) {
